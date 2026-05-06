@@ -321,7 +321,10 @@ def main():
     #calcular desviacion estandar de los promedios de los grados columna 4
     valores = [fila[3] for fila in avg_grados]
     print(f"Valores para desviación estándar: {valores}")
-    desviacion_total_correctas = round(statistics.stdev(valores), 2)
+    if len(valores) > 1:
+        desviacion_total_correctas = round(statistics.stdev(valores), 2)
+    else:
+        desviacion_total_correctas = 0
     for row in avg_grados:
         wb[Sheets[0]].append(row)
     
