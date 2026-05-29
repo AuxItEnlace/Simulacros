@@ -385,13 +385,14 @@ def format_grade_sheet(ws: Worksheet):
         cell.border = _no_border
         cell.alignment = _align_center
 
-        # G–H: merged for "PROMEDIO" label (#4bacc6)
+        # G–H: merged for "PROMEDIO" label (#4bacc6) – set border on BOTH cells before merge
+        ws.cell(row=prom_row, column=7).border = _THIN_BORDER
+        ws.cell(row=prom_row, column=8).border = _THIN_BORDER
         ws.merge_cells(start_row=prom_row, start_column=7, end_row=prom_row, end_column=8)
         cell = ws.cell(row=prom_row, column=7)
         cell.fill = _fill_prom
         cell.font = Font(bold=True, color="000000")
         cell.alignment = _align_center
-        cell.border = _THIN_BORDER
         for cc in range(1, max_col + 1):
             v = ws.cell(row=prom_row, column=cc).value
             if v is not None and isinstance(v, str) and "PROMEDIO" in v:

@@ -27,8 +27,7 @@ def main() -> None:
     data = load_and_sort_data(str(csv_path))
     data = calculate_columns(data)
 
-    if config.get("Calificacion", "FALSE").upper() == "TRUE":
-        data.insert(0, "CALIFICACION", round(data["PUNTAJE"] * 5 / 100, 1))
+    calificacion_enabled = config.get("Calificacion", "FALSE").upper() == "TRUE"
 
     sede = config.get("Sede", "")
     school_tag = sede[:10] if len(sede) > 10 else sede
@@ -48,8 +47,13 @@ def main() -> None:
 
     wb = create_base_sheets(Workbook(), sheet_names)
 
-    # Raw data sheet
-    write_dataframe_to_sheet(wb, sheet_names[2], data)
+    # Raw data sheet (with optional CALIFICACION column)
+    bd_data = data.copy()
+    if calificacion_enabled:
+        bd_data.insert(0, "CALIFICACION", data["PUNTAJE"].apply(
+            lambda x: f"({round(x * 5 / 100, 1):.1f})".replace(".", ",")
+        ))
+    write_dataframe_to_sheet(wb, sheet_names[2], bd_data)
 
     # Write headers for summary sheets
     wb[sheet_names[0]].append(build_base_header())
