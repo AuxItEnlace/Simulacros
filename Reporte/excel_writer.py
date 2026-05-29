@@ -1,5 +1,6 @@
 import statistics
 import re
+from pathlib import Path
 from typing import Dict, List, Any
 
 import pandas as pd
@@ -120,6 +121,7 @@ def process_grade_sheets(
     avg_data: List[List[Any]] = []
     data = data.copy()
     data["GRADO_NUM"] = data["GRADO"].str.extract(r"^(\d+)").astype(int)
+    max_col_grade: Optional[int] = None
 
     for sheet_name in grade_sheets:
         grade_num = int(sheet_name.split("(")[1].split(")")[0])
@@ -131,8 +133,12 @@ def process_grade_sheets(
 
         sheet = wb[sheet_name]
         sheet.append(grade_data.columns.tolist())
+        n_cols = len(grade_data.columns)
+        if max_col_grade is None:
+            max_col_grade = n_cols
 
-        for grado, group in grade_data.groupby("GRADO"):
+        groups = list(grade_data.groupby("GRADO"))
+        for idx, (grado, group) in enumerate(groups):
             for row in group.itertuples(index=False):
                 sheet.append(list(row))
 
@@ -181,8 +187,16 @@ def process_grade_sheets(
                 "DESVIACION ESTANDAR",
                 std_dev,
             ]
+            # Pad header_avg to match column count
+            while len(header_avg) < n_cols:
+                header_avg.append("")
+
             sheet.append(header_avg)
             sheet.append(avg_row)
+
+            # -- separator rows AFTER each group --
+            sheet.append([""] * n_cols)          # white (13px)
+            sheet.append([""] * n_cols)          # black (6px)
 
             # -- collect summary row (ordered by AVG_COLS) --
             summary: List[Any] = [grado, std_dev]
@@ -304,6 +318,11 @@ def add_summary_by_group(
         avg_row[2] = "Promedio"
         ws.append(avg_row)
 
+        # Separator rows (white + black) – formatted later
+        ncols = len(modified[0])
+        ws.append([""] * ncols)
+        ws.append([""] * ncols)
+
         grade_averages.append(
             [school_name, f"{numero}°", std] + col_avgs[2:]
         )
@@ -331,24 +350,29 @@ def format_percentages(wb: Workbook, sheet_names: List[str]) -> None:
         ws = wb[name]
         for row in ws.iter_rows(min_row=2, min_col=1, max_col=ws.max_column):
             for cell in row:
-                if isinstance(cell.value, str) and cell.value.strip().endswith("%"):
+                try:
+                    val = cell.value
+                except AttributeError:
+                    continue  # MergedCell – no direct value
+                if isinstance(val, str) and val.strip().endswith("%"):
                     try:
-                        cell.value = float(cell.value.strip().replace("%", "")) / 100
+                        cell.value = float(val.strip().replace("%", "")) / 100
                         cell.number_format = "0%"
                     except ValueError:
                         pass
-                elif isinstance(cell.value, (int, float)):
-                    cell.number_format = "0" if cell.value == int(cell.value) else "0.0"
+                elif isinstance(val, (int, float)):
+                    cell.number_format = "0" if val == int(val) else "0.0"
 
 
 # ---------------------------------------------------------------------------
 # Save
 # ---------------------------------------------------------------------------
 
-def save_workbook(wb: Workbook, config: Dict[str, str]) -> str:
-    filename = (
-        f'data/{config["SchoolName"]} {config["Sede"]} '
-        f'{config["Date"]} PRUEBA {config["Prueba"]}.xlsx'
-    )
-    wb.save(filename)
-    return filename
+def save_workbook(wb: Workbook, config: Dict[str, str], output_dir: str = "data") -> str:
+    sede = config.get("Sede", "")
+    school_part = f'{config["SchoolName"]} {sede}' if sede else config["SchoolName"]
+    filename = f'{school_part} {config["Date"]} PRUEBA {config["Prueba"]}.xlsx'
+    path = Path(output_dir) / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(str(path))
+    return str(path)
