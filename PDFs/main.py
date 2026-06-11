@@ -7,7 +7,7 @@ import keyboard
 from tqdm import tqdm
 
 # === CONFIGURACIÓN ===
-plantilla = os.path.abspath("data/plantilla.docx")
+plantilla = os.path.abspath("config/plantilla.docx")
 datos = os.path.abspath("data/data.csv")
 salida_pdf = os.path.abspath("pdfs_por_grado")
 salida_docx = os.path.abspath("temp_docs_por_grado")
@@ -19,7 +19,7 @@ os.makedirs(salida_temp_excel, exist_ok=True)
 # === CANCELACIÓN ===
 cancelado = False
 def detectar_cancelacion():
-    global canclselado
+    global cancelado
     print("⏳ Presiona ALT + Q para cancelar en cualquier momento.")
     keyboard.wait("alt+q")
     cancelado = True
@@ -28,8 +28,7 @@ def detectar_cancelacion():
 # === CARGAR DATOS ===
 df = pd.read_csv(datos, encoding='utf-8-sig', sep=';')
 df.columns = df.columns.str.strip().str.upper()
-grados = df["GRADO"].dropna().unique()
-grados.sort()
+grados = sorted(df["GRADO"].dropna().unique())
 
 # === INICIAR WORD ===
 print("🚀 Iniciando Word...")
