@@ -23,4 +23,4 @@ temp_excels/
 *.xlsx
 Reporte/data/*
 !Reporte/data/.gitkeep
-PDFs/data/data.csv
+PDFs/data/*
