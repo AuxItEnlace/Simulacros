@@ -7,7 +7,8 @@ def load_and_sort_data(filepath: str) -> pd.DataFrame:
     if data.empty:
         raise ValueError("El archivo CSV está vacío.")
 
-    data[["GRADO_NUM", "GRADO_LETRA"]] = data["GRADO"].str.extract(r"(\d+)([A-Z])")
+    data["GRADO"] = data["GRADO"].astype(str)
+    data[["GRADO_NUM", "GRADO_LETRA"]] = data["GRADO"].str.extract(r"(\d+)([A-Z])?")
     data["GRADO_NUM"] = data["GRADO_NUM"].astype(int)
     data["% CORRECTAS"] = (
         data["% CORRECTAS"].astype(str).str.replace("%", "").astype(float)
@@ -42,7 +43,8 @@ def calculate_columns(data: pd.DataFrame) -> pd.DataFrame:
 
     data.drop(columns=["PUNTAJE_PONDERADO"], inplace=True)
 
-    data[["GRADO_NUM", "GRADO_LETRA"]] = data["GRADO"].str.extract(r"(\d+)([A-Z])")
+    data["GRADO"] = data["GRADO"].astype(str)
+    data[["GRADO_NUM", "GRADO_LETRA"]] = data["GRADO"].str.extract(r"(\d+)([A-Z])?")
     data["GRADO_NUM"] = data["GRADO_NUM"].astype(int)
 
     data.sort_values(

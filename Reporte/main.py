@@ -35,7 +35,7 @@ def main() -> None:
         school_tag = config["SchoolName"][:10]
 
     # Determine which grades have data (extract numeric prefix from GRADO)
-    data["_GRADO_NUM"] = data["GRADO"].str.extract(r"^(\d+)").astype(int)
+    data["_GRADO_NUM"] = data["GRADO"].astype(str).str.extract(r"^(\d+)").astype(int)
     active_grades = sorted(data["_GRADO_NUM"].unique())
     data.drop(columns=["_GRADO_NUM"], inplace=True)
 
@@ -51,7 +51,7 @@ def main() -> None:
     bd_data = data.copy()
     if calificacion_enabled:
         bd_data.insert(0, "CALIFICACION", data["PUNTAJE"].apply(
-            lambda x: f"({round(x * 5 / 100, 1):.1f})".replace(".", ",")
+            lambda x: f"{x * 5 / 100:.1f}"
         ))
     write_dataframe_to_sheet(wb, sheet_names[2], bd_data)
 

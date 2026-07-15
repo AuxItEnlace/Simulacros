@@ -372,7 +372,7 @@ def save_workbook(wb: Workbook, config: Dict[str, str], output_dir: str = "data"
     sede = config.get("Sede", "")
     school_part = f'{config["SchoolName"]} {sede}' if sede else config["SchoolName"]
     filename = f'{school_part} {config["Date"]} PRUEBA {config["Prueba"]}.xlsx'
-    path = Path(output_dir) / filename
+    path = Path(output_dir) / "Reportes" / filename
     path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(str(path))
     return str(path)
